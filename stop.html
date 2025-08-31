@@ -3,87 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stopwatch</title>
+  <title>Olive Feast Stopwatch</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-900 via-gray-900 to-black text-white">
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-olive-100 via-amber-50 to-stone-100">
 
-  <div class="bg-gray-800/70 backdrop-blur-md p-6 rounded-3xl shadow-2xl w-full max-w-sm text-center border border-gray-700">
-    <h1 class="text-3xl font-extrabold mb-6 tracking-widest text-indigo-400">STOPWATCH</h1>
+  <div class="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-2xl max-w-sm text-center border-4 border-olive-600">
+    <h1 class="text-3xl font-serif font-bold text-olive-700 mb-6">⏱ Feast Timer</h1>
     
-    <div id="display" class="text-5xl font-mono mb-6 tracking-wider">00:00:00</div>
-
-    <div class="grid grid-cols-3 gap-3 mb-6">
-      <button id="startPauseBtn" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 rounded-xl shadow-md transition">Start</button>
-      <button id="resetBtn" class="px-4 py-2 bg-rose-500 hover:bg-rose-600 rounded-xl shadow-md transition">Reset</button>
-      <button id="lapBtn" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 rounded-xl shadow-md transition">Lap</button>
+    <!-- Display -->
+    <div id="display" class="text-5xl font-mono text-olive-800 mb-6">00:00:00</div>
+    
+    <!-- Controls -->
+    <div class="flex justify-center gap-3">
+      <button id="startBtn" class="px-4 py-2 rounded-full bg-olive-600 text-white hover:bg-olive-700 transition">Start</button>
+      <button id="pauseBtn" class="px-4 py-2 rounded-full bg-amber-500 text-white hover:bg-amber-600 transition">Pause</button>
+      <button id="resetBtn" class="px-4 py-2 rounded-full bg-tomato-500 text-white hover:bg-tomato-600 transition">Reset</button>
     </div>
 
-    <div class="text-left max-h-48 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
-      <ul id="laps"></ul>
+    <!-- Laps -->
+    <div class="mt-6">
+      <h2 class="text-lg font-semibold text-olive-700 mb-2">🍝 Laps</h2>
+      <ul id="laps" class="space-y-1 text-sm text-stone-700 max-h-32 overflow-y-auto"></ul>
     </div>
   </div>
 
   <script>
-    let timer;
-    let running = false;
-    let elapsedTime = 0;
-    let startTime;
-    const display = document.getElementById("display");
-    const startPauseBtn = document.getElementById("startPauseBtn");
-    const resetBtn = document.getElementById("resetBtn");
-    const lapBtn = document.getElementById("lapBtn");
-    const lapsList = document.getElementById("laps");
+    let [hours, minutes, seconds] = [0,0,0];
+    let timer = null;
+    const display = document.getElementById('display');
+    const laps = document.getElementById('laps');
 
-    function formatTime(ms) {
-      const totalSeconds = Math.floor(ms / 1000);
-      const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
-      const seconds = String(totalSeconds % 60).padStart(2, "0");
-      const centiseconds = String(Math.floor((ms % 1000) / 10)).padStart(2, "0");
-      return `${minutes}:${seconds}:${centiseconds}`;
+    function updateDisplay(){
+      display.textContent = 
+        String(hours).padStart(2,'0')+":"+
+        String(minutes).padStart(2,'0')+":"+
+        String(seconds).padStart(2,'0');
     }
 
-    function updateTime() {
-      elapsedTime = Date.now() - startTime;
-      display.textContent = formatTime(elapsedTime);
+    function startTimer(){
+      if(timer) return;
+      timer = setInterval(()=>{
+        seconds++;
+        if(seconds===60){seconds=0;minutes++;}
+        if(minutes===60){minutes=0;hours++;}
+        updateDisplay();
+      },1000);
     }
 
-    startPauseBtn.addEventListener("click", () => {
-      if (!running) {
-        startTime = Date.now() - elapsedTime;
-        timer = setInterval(updateTime, 10);
-        startPauseBtn.textContent = "Pause";
-        startPauseBtn.classList.replace("bg-indigo-500", "bg-yellow-500");
-        startPauseBtn.classList.replace("hover:bg-indigo-600", "hover:bg-yellow-600");
-        running = true;
-      } else {
-        clearInterval(timer);
-        startPauseBtn.textContent = "Start";
-        startPauseBtn.classList.replace("bg-yellow-500", "bg-indigo-500");
-        startPauseBtn.classList.replace("hover:bg-yellow-600", "hover:bg-indigo-600");
-        running = false;
-      }
-    });
-
-    resetBtn.addEventListener("click", () => {
+    function pauseTimer(){
       clearInterval(timer);
-      elapsedTime = 0;
-      running = false;
-      display.textContent = "00:00:00";
-      startPauseBtn.textContent = "Start";
-      startPauseBtn.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
-      startPauseBtn.classList.add("bg-indigo-500", "hover:bg-indigo-600");
-      lapsList.innerHTML = "";
-    });
+      timer=null;
+    }
 
-    lapBtn.addEventListener("click", () => {
-      if (running) {
-        const li = document.createElement("li");
-        li.textContent = `Lap ${lapsList.children.length + 1}: ${formatTime(elapsedTime)}`;
-        li.className = "bg-gray-700/60 px-3 py-1 rounded-lg text-sm font-mono";
-        lapsList.appendChild(li);
-      }
-    });
+    function resetTimer(){
+      pauseTimer();
+      [hours,minutes,seconds] = [0,0,0];
+      updateDisplay();
+      laps.innerHTML="";
+    }
+
+    function addLap(){
+      const li = document.createElement('li');
+      li.textContent = display.textContent;
+      li.className="px-3 py-1 bg-olive-100 rounded-md border border-olive-300";
+      laps.appendChild(li);
+    }
+
+    document.getElementById('startBtn').onclick=startTimer;
+    document.getElementById('pauseBtn').onclick=()=>{pauseTimer();addLap();};
+    document.getElementById('resetBtn').onclick=resetTimer;
+
+    updateDisplay();
   </script>
+
+  <style>
+    /* Tailwind custom colors for Olive Garden vibes */
+    .bg-olive-100 { background-color: #f3f6ed; }
+    .bg-olive-600 { background-color: #6b8e23; }
+    .bg-olive-700 { background-color: #556b2f; }
+    .border-olive-600 { border-color: #6b8e23; }
+    .text-olive-700 { color: #556b2f; }
+    .text-olive-800 { color: #3f4e2a; }
+    .bg-tomato-500 { background-color: #e63946; }
+    .hover\:bg-tomato-600:hover { background-color: #c62828; }
+  </style>
+
 </body>
 </html>
