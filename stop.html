@@ -1,56 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stopwatch</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-900 via-gray-900 to-black text-white">
 
+  <div class="bg-gray-800/70 backdrop-blur-md p-6 rounded-3xl shadow-2xl w-full max-w-sm text-center border border-gray-700">
+    <h1 class="text-3xl font-extrabold mb-6 tracking-widest text-indigo-400">STOPWATCH</h1>
     
-    
+    <div id="display" class="text-5xl font-mono mb-6 tracking-wider">00:00:00</div>
 
-
-
-
-
-
-
-<!--     
-    <div class="bg-blue-50 h-screen py-60">
-        
-        <h1 class="flex justify-center text-5xl text-gray-700 font-mono">STOPWATCH</h1>
-
-        <div class="flex gap-4 justify-center py-10 ">
-        <button class=" rounded-lg w-24 h-24 py-7 font-mono shadow-xl" id="startBtn">
-            Start
-        </button>
-        <button class="rounded-lg w-24 h-24 py-7 font-mono shadow-xl" id="stopBtn">
-            Stop
-        </button>
-        </div>
-
-        <div class="flex justify-center" id="timer">
-            <p class="border-2 rounded-lg font-mono w-44 px-14" id="timer">
-            00:00:00
-            </p>
-        </div>
-        <div class="flex justify-center ">
-        <button class="border-2 border-blue-100 rounded w-24 font-mono mt-2 shadow-xl" id="lapBtn">
-            Lap
-        </button>
-        </div>
-        <div>
-            <ul id="lapList">
-                <li class="font-mono text-sm"></li>
-            </ul>
-        </div>
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <button id="startPauseBtn" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 rounded-xl shadow-md transition">Start</button>
+      <button id="resetBtn" class="px-4 py-2 bg-rose-500 hover:bg-rose-600 rounded-xl shadow-md transition">Reset</button>
+      <button id="lapBtn" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 rounded-xl shadow-md transition">Lap</button>
     </div>
 
+    <div class="text-left max-h-48 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+      <ul id="laps"></ul>
+    </div>
+  </div>
 
- -->
+  <script>
+    let timer;
+    let running = false;
+    let elapsedTime = 0;
+    let startTime;
+    const display = document.getElementById("display");
+    const startPauseBtn = document.getElementById("startPauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const lapBtn = document.getElementById("lapBtn");
+    const lapsList = document.getElementById("laps");
 
-    <!-- <script src="stop.js"></script> -->
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+      const seconds = String(totalSeconds % 60).padStart(2, "0");
+      const centiseconds = String(Math.floor((ms % 1000) / 10)).padStart(2, "0");
+      return `${minutes}:${seconds}:${centiseconds}`;
+    }
+
+    function updateTime() {
+      elapsedTime = Date.now() - startTime;
+      display.textContent = formatTime(elapsedTime);
+    }
+
+    startPauseBtn.addEventListener("click", () => {
+      if (!running) {
+        startTime = Date.now() - elapsedTime;
+        timer = setInterval(updateTime, 10);
+        startPauseBtn.textContent = "Pause";
+        startPauseBtn.classList.replace("bg-indigo-500", "bg-yellow-500");
+        startPauseBtn.classList.replace("hover:bg-indigo-600", "hover:bg-yellow-600");
+        running = true;
+      } else {
+        clearInterval(timer);
+        startPauseBtn.textContent = "Start";
+        startPauseBtn.classList.replace("bg-yellow-500", "bg-indigo-500");
+        startPauseBtn.classList.replace("hover:bg-yellow-600", "hover:bg-indigo-600");
+        running = false;
+      }
+    });
+
+    resetBtn.addEventListener("click", () => {
+      clearInterval(timer);
+      elapsedTime = 0;
+      running = false;
+      display.textContent = "00:00:00";
+      startPauseBtn.textContent = "Start";
+      startPauseBtn.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
+      startPauseBtn.classList.add("bg-indigo-500", "hover:bg-indigo-600");
+      lapsList.innerHTML = "";
+    });
+
+    lapBtn.addEventListener("click", () => {
+      if (running) {
+        const li = document.createElement("li");
+        li.textContent = `Lap ${lapsList.children.length + 1}: ${formatTime(elapsedTime)}`;
+        li.className = "bg-gray-700/60 px-3 py-1 rounded-lg text-sm font-mono";
+        lapsList.appendChild(li);
+      }
+    });
+  </script>
 </body>
 </html>
